@@ -28,6 +28,6 @@ jobs:
     - name: Download YouthMappers Data
       env:
         OSM_TEAMS_ACCESS_TOKEN: ${{ secrets.OSM_TEAMS_ACCESS_TOKEN }}
-        DEBUG: ${{ env.OSM_TEAMS_ACCESS_TOKEN }}
+        DEBUG: True
       run: |
         python3 download_youthmappers.py
