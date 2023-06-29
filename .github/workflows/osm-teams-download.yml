@@ -31,10 +31,13 @@ jobs:
         DEBUG: True
       run: |
         python3 download_youthmappers.py        
+    - name: Get current datestamp
+      run: |
+        echo "DATESTAMP=$(date +"%Y-%m-%d")" >> ${GITHUB_ENV}
     - name: Upload to Google
       uses: adityak74/google-drive-upload-git-action@main
       with:
         credentials: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
         filename: youthmappers.json
         folderId: 169ukDJyaGvbdNOpkNrbb7mjD5ze94nD4
-        name: youthmapper_uploaded_file.json
+        name: youthmapper_uploaded_file_${{env.DATESTAMP}}.json
