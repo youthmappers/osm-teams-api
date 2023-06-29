@@ -24,7 +24,7 @@ class OSMTeams():
         last_page = max_pages or pagination.get('lastPage')
         data = []
         for page in range(2, last_page+1):
-            sys.stderr.write(f"\rPaginating: {page} / {last_page} pages   ")
+            sys.stderr.write(".")
             res = self.session.get(url + f'?page='+str(page) + (f'&perPage={per_page}' if per_page else ''))
             data.append(res.json())
         return data
