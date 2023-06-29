@@ -9,6 +9,8 @@ DEBUG = os.getenv('DEBUG').lower() == 'true'
 print("Beginning YouthMappers Download from OSM Teams")
 print(f"  DEBUG Status: {DEBUG}")
 
+
+
 ym = OSMTeams(token_or_session=TOKEN, organization_id=1, debug=DEBUG)
 
 date_suffix = datetime.now().strftime('%m_%d_%Y')
@@ -49,29 +51,34 @@ youthmappers.to_json(youthmappers_json)
 
 
 # # Hit the OSM API for more User Info
-if not os.path.isfile(osm_user_info_json):
+if ym.debug or not os.path.isfile(osm_user_info_json):
 	osm_user_information = ym.get_mapper_info_from_osm(set(youthmappers.uid))
 	osm_user_information.to_json(osm_user_info_json)
 
 osm_user_information = pd.read_json(osm_user_info_json)
 
+try:
 
-# Merge the DFs
-y = youthmappers.merge(osm_user_information, left_on='uid', right_index=True, how='outer')
-y['changeset_count'] = y.changesets.apply(lambda c: c.get('count'))
-y['account_created'] = y['account_created'].apply(pd.Timestamp)
-y['alumni'] = y['Alumni'].apply(lambda c: pd.Timestamp(c.get('assigned_at')).date() if type(c) == dict else None)
-y['regional_ambassador'] = y['Regional Ambassador'].apply(lambda c: pd.Timestamp(c.get('assigned_at')).date() if type(c) == dict else None)
-y['ymsc'] = y['Steering Committee'].apply(lambda c: pd.Timestamp(c.get('assigned_at')).date() if type(c) == dict else None)
-y.rename(columns={'Major or Degree Concentration':'major','Gender':'gender','Year Born':'born',
-                  'Graduation Date':'graduation', 'Hometown and Country':'hometown', 'Email':'email',
-                  'Name':'name','University':'university','City':'city','Country':'country',
-                  'location':'chapter_location'}, inplace=True)
-y = y[[
-    'uid','username','name','gender','email','born','graduation','hometown','changeset_count',
-    'account_created','description','chapter','university','city','country','chapter_location',
-    'alumni','regional_ambassador','ymsc'
-]]
+	# Merge the DFs
+	y = youthmappers.merge(osm_user_information, left_on='uid', right_index=True, how='outer')
+	y['changeset_count'] = y.changesets.apply(lambda c: c.get('count'))
+	y['account_created'] = y['account_created'].apply(pd.Timestamp)
+	y['alumni'] = y['Alumni'].apply(lambda c: pd.Timestamp(c.get('assigned_at')).date() if type(c) == dict else None)
+	y['regional_ambassador'] = y['Regional Ambassador'].apply(lambda c: pd.Timestamp(c.get('assigned_at')).date() if type(c) == dict else None)
+	y['ymsc'] = y['Steering Committee'].apply(lambda c: pd.Timestamp(c.get('assigned_at')).date() if type(c) == dict else None)
+	y.rename(columns={'Major or Degree Concentration':'major','Gender':'gender','Year Born':'born',
+	                  'Graduation Date':'graduation', 'Hometown and Country':'hometown', 'Email':'email',
+	                  'Name':'name','University':'university','City':'city','Country':'country',
+	                  'location':'chapter_location'}, inplace=True)
+	y = y[[
+	    'uid','username','name','gender','email','born','graduation','hometown','changeset_count',
+	    'account_created','description','chapter','university','city','country','chapter_location',
+	    'alumni','regional_ambassador','ymsc'
+	]]
 
-y.to_csv(f"/tmp/youthmappers_{date_suffix}.csv", sep=",", header=True)
-y.to_csv("/tmp/youthmappers.tsv", sep="\t", header=False)
+	y.to_csv(f"/tmp/youthmappers_{date_suffix}.csv", sep=",", header=True)
+	y.to_csv("/tmp/youthmappers.tsv", sep="\t", header=False)
+except:
+	print("Failed to Merge the DFs")
+
+print("Done.")
