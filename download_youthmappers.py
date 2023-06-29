@@ -4,8 +4,11 @@ import pandas as pd
 from osm_teams import OSMTeams
 
 TOKEN = os.getenv('OSM_TEAMS_ACCESS_TOKEN')
+DEBUG = os.getenv('DEBUG') == 'True'
 
-ym = OSMTeams(token_or_session=TOKEN, organization_id=1, debug=True)
+print(f"DEBUG Status: {DEBUG}")
+
+ym = OSMTeams(token_or_session=TOKEN, organization_id=1, debug=DEBUG)
 
 date_suffix = datetime.now().strftime('%m_%d_%Y')
 
@@ -23,7 +26,10 @@ if not os.path.isfile(chapters_json):
 	chapters.to_json(chapters_json)
 
 members = pd.read_json(members_json)
+print(f"Found {len(members)} users in the YouthMappers Organization.")
+
 chapters = pd.read_json(chapters_json)
+print(f"Fetched {len(chapters)} teams")
 
 
 youthmappers = chapters.reset_index().explode('member_uids').rename(
@@ -37,6 +43,7 @@ youthmappers = members.merge( youthmappers[
                     ['uid','moderator','chapter','University','City','Country','location', 'team_id']
         ], left_index=True, right_on='uid', how='outer').reset_index(drop=True)
 
+print(f"Completed YM Profiles in OSM Teams: {youthmappers[pd.notnull(youthmappers['Gender'])].uid.nunique()}")
 youthmappers.to_json(youthmappers_json)
 
 
