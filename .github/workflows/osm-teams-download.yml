@@ -30,4 +30,10 @@ jobs:
         OSM_TEAMS_ACCESS_TOKEN: ${{ secrets.OSM_TEAMS_ACCESS_TOKEN }}
         DEBUG: True
       run: |
-        python3 download_youthmappers.py
+        python3 download_youthmappers.py        
+    - name: Upload to Google
+      uses: adityak74/google-drive-upload-git-action@main
+      with:
+        credentials: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
+        filename: "/tmp/youthmappers_06_29_2023.json"
+        folderId: 169ukDJyaGvbdNOpkNrbb7mjD5ze94nD4
