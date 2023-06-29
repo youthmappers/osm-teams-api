@@ -10,15 +10,14 @@ print("Beginning YouthMappers Download from OSM Teams")
 print(f"  DEBUG Status: {DEBUG}")
 
 
-
 ym = OSMTeams(token_or_session=TOKEN, organization_id=1, debug=DEBUG)
 
 date_suffix = datetime.now().strftime('%m_%d_%Y')
 
-members_json = f"/tmp/ym_members_{date_suffix}.json"
-chapters_json = f"/tmp/ym_chapters_{date_suffix}.json"
-youthmappers_json = f"/tmp/youthmappers_{date_suffix}.json"
-osm_user_info_json = f"/tmp/osm_user_stats_{date_suffix}.json"
+members_json = f"ym_members.json"
+chapters_json = f"ym_chapters.json"
+youthmappers_json = f"youthmappers.json"
+osm_user_info_json = f"osm_user_stats.json"
 
 if ym.debug or not os.path.isfile(members_json):
 	members = ym.get_all_organization_members(org_attributes=True, org_badges=True)

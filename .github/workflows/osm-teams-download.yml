@@ -35,5 +35,6 @@ jobs:
       uses: adityak74/google-drive-upload-git-action@main
       with:
         credentials: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
-        filename: "/tmp/youthmappers_06_29_2023.json"
+        filename: youthmappers.json
         folderId: 169ukDJyaGvbdNOpkNrbb7mjD5ze94nD4
+        name: youthmapper_uploaded_file.json
