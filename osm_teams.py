@@ -4,10 +4,12 @@ import requests, sys, json
 
 class OSMTeams():
     
-    def __init__(self, token_or_session, organization_id, per_page=50):
+    def __init__(self, token_or_session, organization_id, per_page=50, debug=False):
         self.API_URL = 'https://mapping.team/api/'
         self.ORG = organization_id
         self.PER_PAGE = per_page
+
+        self.debug = debug
         
         if type(token_or_session) is not str:
             self.session = token_or_session
@@ -17,6 +19,8 @@ class OSMTeams():
             
     
     def _handle_pages(self, pagination, url, per_page=None, max_pages=None):
+        if self.debug:
+            max_pages = 2
         last_page = max_pages or pagination.get('lastPage')
         data = []
         for page in range(2, last_page+1):
@@ -43,8 +47,9 @@ class OSMTeams():
                 
                 for page in remaining_pages:
                     data += page.get('members').get('data')
-                    
-                assert len(data) == pagination.get('total'), "Pagination returned incorrect number of team members"
+                
+                if not self.debug:
+                    assert len(data) == pagination.get('total'), "Pagination returned incorrect number of team members"
         
         return data
 
@@ -100,8 +105,9 @@ class OSMTeams():
                 
                 for page in remaining_pages:
                     data += page.get('data')
-                    
-                assert len(data) == pagination.get('total'), f"Pagination returned incorrect number of teams: {len(data)} / {pagination.get('total')}" 
+                
+                if not self.debug:
+                    assert len(data) == pagination.get('total'), f"Pagination returned incorrect number of teams: {len(data)} / {pagination.get('total')}" 
                 
         df = pd.DataFrame(data).set_index('id')
 
@@ -177,8 +183,9 @@ class OSMTeams():
                 
                 for page in remaining_pages:
                     data += page.get('data')
-                    
-                assert len(data) == pagination.get('total'), "Pagination returned incorrect number of members for organization" 
+                
+                if not self.debug:
+                    assert len(data) == pagination.get('total'), "Pagination returned incorrect number of members for organization" 
     
         df = pd.DataFrame(data)
         
