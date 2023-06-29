@@ -55,12 +55,12 @@ jobs:
       with:
         credentials: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
         filename: members.json
-        folderId: 1p6JeBvbsziMiBefCNet_q3nj9GvQWMnb
+        folderId: 1oEbib5Fa8oZJDdhMbpgcatQWtIFr9C9H
         overwrite: True
     - name: Upload chapters.json to Google Drive
       uses: adityak74/google-drive-upload-git-action@main
       with:
         credentials: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
         filename: chapters.json
-        folderId: 1p6JeBvbsziMiBefCNet_q3nj9GvQWMnb
+        folderId: 1oEbib5Fa8oZJDdhMbpgcatQWtIFr9C9H
         overwrite: True
