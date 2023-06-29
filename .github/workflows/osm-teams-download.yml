@@ -9,6 +9,9 @@ on:
   pull_request:
     branches: [ "main" ]
 
+  schedule:
+    - cron: "0 10 * * 5"
+
   workflow_dispatch:
 
 permissions:
@@ -30,7 +33,7 @@ jobs:
     - name: Download YouthMappers Data
       env:
         OSM_TEAMS_ACCESS_TOKEN: ${{ secrets.OSM_TEAMS_ACCESS_TOKEN }}
-        DEBUG: True
+        DEBUG: False
       run: |
         python3 download_youthmappers.py        
     - name: Set Datestamp for file suffix
