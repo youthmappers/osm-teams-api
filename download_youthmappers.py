@@ -5,7 +5,7 @@ from osm_teams import OSMTeams
 
 TOKEN = os.getenv('OSM_TEAMS_ACCESS_TOKEN')
 
-ym = OSMTeams(token_or_session=TOKEN, organization_id=1, debug=False)
+ym = OSMTeams(token_or_session=TOKEN, organization_id=1, debug=True)
 
 date_suffix = datetime.now().strftime('%m_%d_%Y')
 
