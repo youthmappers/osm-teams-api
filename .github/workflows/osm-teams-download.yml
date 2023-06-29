@@ -4,11 +4,6 @@
 name: Download YouthMappers Org from OSMTeams
 
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-
   schedule:
     - cron: "0 10 * * 5"
 
@@ -54,4 +49,18 @@ jobs:
         filename: youthmappers.csv
         folderId: 1p6JeBvbsziMiBefCNet_q3nj9GvQWMnb
         name: youthmappers_${{env.DATESTAMP}}.csv
+        overwrite: True
+    - name: Upload members.json to Google Drive
+      uses: adityak74/google-drive-upload-git-action@main
+      with:
+        credentials: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
+        filename: members.json
+        folderId: 1p6JeBvbsziMiBefCNet_q3nj9GvQWMnb
+        overwrite: True
+    - name: Upload chapters.json to Google Drive
+      uses: adityak74/google-drive-upload-git-action@main
+      with:
+        credentials: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
+        filename: chapters.json
+        folderId: 1p6JeBvbsziMiBefCNet_q3nj9GvQWMnb
         overwrite: True

@@ -11,51 +11,62 @@ print(f"  DEBUG Status: {DEBUG}")
 
 ym = OSMTeams(token_or_session=TOKEN, organization_id=1, debug=DEBUG)
 
-members_json = f"ym_members.json"
-chapters_json = f"ym_chapters.json"
-youthmappers_json = f"youthmappers.json"
-osm_user_info_json = f"osm_user_stats.json"
-
-if ym.debug or not os.path.isfile(members_json):
-	members = ym.get_all_organization_members(org_attributes=True, org_badges=True)
-	members.to_json(members_json)
+if ym.debug or not os.path.isfile("members.json"):
+	members = ym.get_all_organization_members(
+		org_attributes=True, 
+		org_badges=True
+	)
+	members.to_json("members.json")
 	
-if ym.debug or not os.path.isfile(chapters_json):
-	chapters = ym.get_all_organization_teams(members=True, join_link=True, attributes=True, max_count=None)
-	chapters.to_json(chapters_json)
+if ym.debug or not os.path.isfile("chapters.json"):
+	chapters = ym.get_all_organization_teams(
+		members=True, 
+		join_link=True, 
+		attributes=True, 
+		max_count=None
+	)
+	chapters.to_json("chapters.json")
 
-members = pd.read_json(members_json)
+members = pd.read_json("members.json")
 print(f"Found {len(members)} users in the YouthMappers Organization.")
 
-chapters = pd.read_json(chapters_json)
+chapters = pd.read_json("chapters.json")
 print(f"Fetched {len(chapters)} teams")
-chapters.to_csv("chapters.csv", sep=",", header=True)
 
+chapters.to_csv("chapters.csv", sep=",", header=True)
 
 youthmappers = chapters.reset_index().explode('member_uids').rename(
 		columns={'index':'team_id', 'member_uids':'uid', 'name':'chapter'}
 	)
 youthmappers['moderator'] = youthmappers.apply(lambda row: row.uid in row.moderator_uids, axis=1)
 
-youthmappers = youthmappers[(youthmappers.team_id == 2) | ((youthmappers.uid != 1770239)  & (youthmappers.team_id != 2))]
+youthmappers = youthmappers[(youthmappers.team_id == 2) | (
+	(youthmappers.team_id != 2) & (
+		 	(
+				(youthmappers.uid != 1770239) &
+				(youthmappers.uid != 6017386) &
+				(youthmappers.uid != 2405982) &
+				(youthmappers.uid != 2330248)
+			)
+		)
+	)]
 
 youthmappers = members.merge( youthmappers[
                     ['uid','moderator','chapter','University','City','Country','location', 'team_id']
         ], left_index=True, right_on='uid', how='outer').reset_index(drop=True)
 
 print(f"Completed YM Profiles in OSM Teams: {youthmappers[pd.notnull(youthmappers['Gender'])].uid.nunique()}")
-youthmappers.to_json(youthmappers_json)
+youthmappers.to_json("youthmappers.json")
 
 
 # # Hit the OSM API for more User Info
-if ym.debug or not os.path.isfile(osm_user_info_json):
+if ym.debug or not os.path.isfile("osm_user_info.json"):
 	osm_user_information = ym.get_mapper_info_from_osm(set(youthmappers.uid))
-	osm_user_information.to_json(osm_user_info_json)
+	osm_user_information.to_json("osm_user_info.json")
 
-osm_user_information = pd.read_json(osm_user_info_json)
+osm_user_information = pd.read_json("osm_user_info.json")
 
 try:
-
 	# Merge the DFs
 	y = youthmappers.merge(osm_user_information, left_on='uid', right_index=True, how='outer')
 	y['changeset_count'] = y.changesets.apply(lambda c: c.get('count'))
