@@ -1,5 +1,4 @@
 import requests, json, time, os
-from datetime import datetime
 import pandas as pd
 from osm_teams import OSMTeams
 
@@ -11,8 +10,6 @@ print(f"  DEBUG Status: {DEBUG}")
 
 
 ym = OSMTeams(token_or_session=TOKEN, organization_id=1, debug=DEBUG)
-
-date_suffix = datetime.now().strftime('%m_%d_%Y')
 
 members_json = f"ym_members.json"
 chapters_json = f"ym_chapters.json"
@@ -32,6 +29,7 @@ print(f"Found {len(members)} users in the YouthMappers Organization.")
 
 chapters = pd.read_json(chapters_json)
 print(f"Fetched {len(chapters)} teams")
+chapters.to_csv("chapters.csv", sep=",", header=True)
 
 
 youthmappers = chapters.reset_index().explode('member_uids').rename(
@@ -75,8 +73,7 @@ try:
 	    'alumni','regional_ambassador','ymsc'
 	]]
 
-	y.to_csv(f"/tmp/youthmappers_{date_suffix}.csv", sep=",", header=True)
-	y.to_csv("/tmp/youthmappers.tsv", sep="\t", header=False)
+	y.to_csv("youthmappers.csv", sep=",", header=True)
 except:
 	print("Failed to Merge the DFs")
 
