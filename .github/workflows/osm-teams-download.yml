@@ -43,6 +43,7 @@ jobs:
         filename: chapters.csv
         folderId: 1p6JeBvbsziMiBefCNet_q3nj9GvQWMnb
         name: chapters_${{env.DATESTAMP}}.csv
+        overwrite: True
     - name: Upload YouthMappers to Google Drive
       uses: adityak74/google-drive-upload-git-action@main
       with:
@@ -50,3 +51,4 @@ jobs:
         filename: youthmappers.csv
         folderId: 1p6JeBvbsziMiBefCNet_q3nj9GvQWMnb
         name: youthmappers_${{env.DATESTAMP}}.csv
+        overwrite: True
