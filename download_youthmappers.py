@@ -4,7 +4,7 @@ import pandas as pd
 from osm_teams import OSMTeams
 
 TOKEN = os.getenv('OSM_TEAMS_ACCESS_TOKEN')
-DEBUG = lower(os.getenv('DEBUG')) == 'true'
+DEBUG = os.getenv('DEBUG').lower() == 'true'
 
 print(f"DEBUG Status: {DEBUG}")
 
