@@ -6,7 +6,8 @@ from osm_teams import OSMTeams
 TOKEN = os.getenv('OSM_TEAMS_ACCESS_TOKEN')
 DEBUG = os.getenv('DEBUG').lower() == 'true'
 
-print(f"DEBUG Status: {DEBUG}")
+print("Beginning YouthMappers Download from OSM Teams")
+print(f"  DEBUG Status: {DEBUG}")
 
 ym = OSMTeams(token_or_session=TOKEN, organization_id=1, debug=DEBUG)
 
@@ -17,11 +18,11 @@ chapters_json = f"/tmp/ym_chapters_{date_suffix}.json"
 youthmappers_json = f"/tmp/youthmappers_{date_suffix}.json"
 osm_user_info_json = f"/tmp/osm_user_stats_{date_suffix}.json"
 
-if not os.path.isfile(members_json):
+if ym.debug or not os.path.isfile(members_json):
 	members = ym.get_all_organization_members(org_attributes=True, org_badges=True)
 	members.to_json(members_json)
 	
-if not os.path.isfile(chapters_json):
+if ym.debug or not os.path.isfile(chapters_json):
 	chapters = ym.get_all_organization_teams(members=True, join_link=True, attributes=True, max_count=None)
 	chapters.to_json(chapters_json)
 

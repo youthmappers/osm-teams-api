@@ -23,8 +23,8 @@ class OSMTeams():
             max_pages = 2
         last_page = max_pages or pagination.get('lastPage')
         data = []
+
         for page in range(2, last_page+1):
-            sys.stderr.write(".")
             res = self.session.get(url + f'?page='+str(page) + (f'&perPage={per_page}' if per_page else ''))
             data.append(res.json())
         return data
@@ -81,7 +81,7 @@ class OSMTeams():
         members=False,
         join_link=False, 
         max_count=False,
-        per_page=25
+        per_page=10
     ):
         """
         1. Gets the list of teams from the organizations/:id/teams endpoint.
@@ -90,6 +90,9 @@ class OSMTeams():
         Returns: Dataframe of all teams with attributes
         """
         
+        print("\nFetching all organization teams", end="")
+
+
         url = self.API_URL + 'organizations/' + str(self.ORG) + '/teams'
         
         _page1 = self.session.get(url + f"?page=1&perPage={per_page}").json()
@@ -99,7 +102,8 @@ class OSMTeams():
             
             if 'pagination' in _page1:
                 pagination = _page1.get('pagination')
-                print(pagination)
+
+                print(f" - paginating {pagination.get('lastPage'):,} pages for {pagination.get('total'):,} teams")
                 
                 remaining_pages = self._handle_pages(pagination, url, per_page=per_page)
                 
@@ -121,7 +125,8 @@ class OSMTeams():
             
             idx=1
             for team_id, row in df.iterrows():
-                sys.stderr.write(f"\rFetching Team: {team_id}  -   {idx} / {len(df)}                         ")
+
+                print(f"Fetching Team: {team_id} [{idx} / {len(df)}]")
                 
                 if members:
                     res1 = self.get_team_members(team_id)
@@ -168,6 +173,8 @@ class OSMTeams():
         org_attributes=False, 
         org_badges=False
     ):
+        print("Fetching all organization members", end="")
+
         url = self.API_URL + 'organizations/' + str(org_id or self.ORG) + '/members'
         
         _page1 = self.session.get(url).json()
@@ -177,7 +184,8 @@ class OSMTeams():
             
             if 'pagination' in _page1:
                 pagination = _page1.get('pagination')
-                print(pagination)
+
+                print(f" - paginating {pagination.get('lastPage'):,} pages for {pagination.get('total'):,} users")
                 
                 remaining_pages = self._handle_pages(pagination, url)
                 
@@ -198,7 +206,7 @@ class OSMTeams():
             badges = []
             idx = 1
             for uid, row in df.iterrows():
-                sys.stderr.write(f"\rFetching UID: {uid}  -   {idx} / {len(df)}             ")
+                print(f"Fetching UID: {uid} [{idx} / {len(df)}]")
                 if org_attributes:
                     user_attributes = self.get_org_user_attributes(uid)
                     if user_attributes is not None:
