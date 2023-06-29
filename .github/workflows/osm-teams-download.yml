@@ -13,7 +13,7 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  Download from OSM Teams:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -26,5 +26,8 @@ jobs:
         python -m pip install --upgrade pip
         pip install requests pandas
     - name: Download YouthMappers Data
+      env:
+        OSM_TEAMS_ACCESS_TOKEN: ${{ secrets.OSM_TEAMS_ACCESS_TOKEN }}
+        DEBUG: ${{ env.OSM_TEAMS_ACCESS_TOKEN }}
       run: |
         python3 download_youthmappers.py
