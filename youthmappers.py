@@ -68,21 +68,13 @@ def main():
 
 	# Get mapper info from OSM?
 	if args.osm:
-		# ym.download_latest_from_osm()
+		ym.download_latest_from_osm()
 		ym.merge_df_with_osm()
-
-	# If DF is supposed to 
-	
-	ym.to_csv()
 
 	if args.update:
 		ym.gc = gspread.service_account_from_dict(ym.creds)
 		ym.update_latest_youthmapper_roster()
 		ym.update_latest_chapter_roster()
-
-	# 
-	# 	print("Fetching Previous List from Google Sheets")
-	# 	handler.fetch_previous_master_list_and_conflate()
 	
 	
 
@@ -322,7 +314,6 @@ class YouthMappersHandler():
 			val = t.iloc[df_row, df_col]    
 			c.value = self.__format_cell_value(val, CHAPTER_OUTPUT_COLUMNS_MAPPING.get(df_col))
 		chapters_sheet.update_cells(cell_list, value_input_option='USER_ENTERED')
-
 
 
 	def __conflate(self, row, priority_field, secondary_field, tertiary_field = None):
