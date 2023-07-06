@@ -264,39 +264,60 @@ class OSMTeams():
         else:
             return None
         
-    def get_mapper_info_from_osm(self, uids):
-        count=1
-        all_users = []
-        this_call = []
+    def __build_batches(self, uids, length):
+        batches = []
+        batch = []
         for uid in uids:
-            if count < 50:
-                this_call.append(str(uid))
-                count += 1
-            if count == 50:
-                res = requests.get("https://openstreetmap.org/api/0.6/users.json?users=" + ",".join(this_call))
-                try:
-                    r = res.json()
-                except:
-                    print("Going to singles")
-                    for uid in this_call:
-                        try:
-                            res = requests.get("https://openstreetmap.org/api/0.6/users.json?users=" + uid)
-                            r = res.json()
-                            all_users += r.get('users')
-                        except:
-                            print(uid + " failed")
-                all_users += r.get('users')
-                   
-                this_call = []
-                count = 1
-                sys.stderr.write(f"\rUsers retrieved: {len(all_users)}"+" "*45)
-        if len(this_call)>0:
-            res = requests.get("https://openstreetmap.org/api/0.6/users.json?users=" + ",".join(this_call))
-            all_users += res.json().get('users')
-        sys.stderr.write(f"\rUsers retrieved: {len(all_users)}"+" "*45)
+            batch.append(uid)
+            if len(batch) == length:
+                batches.append(batch)
+                batch = []
+        if len(batch) > 0:
+            batches.append(batch)
+        return batches
+    
         
+    def get_mapper_info_from_osm(self, uids):
+        uids = [str(u) for u in set(uids)] # Ensure uniqueness and strings
+        user_batches = self.__build_batches(uids, 100)
+        
+        all_users = []
+        for batch in user_batches:
+            res = requests.get("https://openstreetmap.org/api/0.6/users.json?users=" + ",".join(batch))
+            try:
+                r = res.json()
+                all_users += r.get('users')
+                print(f"Fetched {len(all_users)} users")
+            except:
+                print("Failed Call, Going to 25s")
+                smaller_batches = self.__build_batches(batch, 25)
+                for smaller_batch in smaller_batches:
+                    res = requests.get("https://openstreetmap.org/api/0.6/users.json?users=" + ",".join(smaller_batch))
+                    try:
+                        r = res.json()
+                        all_users += r.get('users')
+                        print(f"Fetched {len(all_users)} users")
+                    except:
+                        print("Failed Call, Going to 5s")
+                        even_smaller_batches = self.__build_batches(smaller_batch, 5)
+                        for even_smaller_batch in even_smaller_batches:
+                            res = requests.get("https://openstreetmap.org/api/0.6/users.json?users=" + ",".join(even_smaller_batch))
+                            try:
+                                r = res.json()
+                                all_users += r.get('users')
+                                print(f"Fetched {len(all_users)} users")
+                            except:
+                                print("Failed Call, Going to Singles")
+                                for uid in even_smaller_batch:
+                                    try:
+                                        res = requests.get("https://openstreetmap.org/api/0.6/users.json?users=" + uid)
+                                        r = res.json()
+                                        all_users += r.get('users')
+                                        print(f"Fetched {len(all_users)} users")
+                                    except:
+                                        print(f"FAILURE ON {uid}")
+        print(f"Done. Retrieved {len(all_users)} users from OSM")
         return pd.DataFrame([r.get('user') for r in all_users]).set_index('id')
-
         
     
     def add_uids_to_team(self, uids, team):
