@@ -33,7 +33,7 @@ jobs:
         OSM_TEAMS_ACCESS_TOKEN: ${{ secrets.OSM_TEAMS_ACCESS_TOKEN }}
         YGL_GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
       run: |
-        python3 youthmappers.py --drive --osm --conflate --update
+        python3 youthmappers.py --teams --osm --conflate --update
     - name: Set Datestamp for file suffix
       run: |
         echo "DATESTAMP=$(date +"%Y-%m-%d")" >> ${GITHUB_ENV}
@@ -42,7 +42,7 @@ jobs:
       with:
         credentials: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
         filename: members.json
-        folderId: 1oEbib5Fas8oZJDdhMbpgcatQWtIFr9C9H
+        folderId: 1oEbib5Fa8oZJDdhMbpgcatQWtIFr9C9H
         overwrite: True
     - name: Upload chapters.json to Google Drive
       uses: adityak74/google-drive-upload-git-action@main
