@@ -30,7 +30,7 @@ def main():
 
 	parser.add_argument("-u", "--update", 
 			action="store_true",
-			help="What results to upload to Google"
+			help="Update the Latest Mapper & Chapter Roster on Google Drive"
 	)
 
 	parser.add_argument("-o", "--osm", 
