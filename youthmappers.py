@@ -44,6 +44,12 @@ def main():
 		help="Conflate with previous master list of usernames"
 	)
 
+	parser.add_argument("-a",
+		"--athena", 
+		action='store_true',
+		help="Write TSV file for Amazon Athena"
+	)
+
 	args = parser.parse_args()
 
 	print(args)
@@ -76,6 +82,13 @@ def main():
 		ym.update_latest_youthmapper_roster()
 		ym.update_latest_chapter_roster()
 	
+	if args.athena:
+		ym.to_csv(filename='youthmappers.csv', header=True, columns=[
+			"username","Gender","team_id", "Alumni", "Steering Committee", 
+			"Regional Ambassador", "Mentor"
+		])
+		# Write out TSV for Amazon Athena...
+	
 	
 
 class YouthMappersHandler():
@@ -96,8 +109,15 @@ class YouthMappersHandler():
 		self.teams = OSMTeams(token_or_session=os.getenv('OSM_TEAMS_ACCESS_TOKEN'), organization_id=1, debug=False)	
 
 
-	def to_csv(self, filename = 'tmp.csv'):
-		self.df.to_csv(filename)
+	def to_csv(self, filename='tmp.tsv', columns=[], header=False):
+		if len(columns)>0:
+			df = self.df[columns]
+		else:
+			df = self.df
+		
+		df.reset_index().rename(
+				columns={'index':'uid'}
+			).to_csv(filename, header=header, index=False)
 
 
 	def download_latest_from_osm_teams(self):
