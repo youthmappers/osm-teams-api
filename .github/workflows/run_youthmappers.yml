@@ -48,11 +48,13 @@ jobs:
         role-to-assume: arn:aws:iam::812718984223:role/YouthMappersGithubAssumeRole
         aws-region: us-east-1
 
-    - name: Update Mappers list on s3
-      run: aws --region us-east-1 s3 cp mappers.json s3://youthmappers-internal-us-east1/mappers/mappers.json
-
     - name: Update chapters list on s3
       run: aws --region us-east-1 s3 cp chapters.json s3://youthmappers-internal-us-east1/chapters/chapters.json
+      
+    - name: Update mappers list on s3
+      run: aws --region us-east-1 s3 cp members.json s3://youthmappers-internal-us-east1/mappers/mappers.json
+
+    
 
     
           
