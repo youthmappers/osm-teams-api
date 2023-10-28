@@ -40,7 +40,7 @@ jobs:
       env:
         OSM_TEAMS_ACCESS_TOKEN: ${{ secrets.OSM_TEAMS_ACCESS_TOKEN }}
         YGL_GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
-      run: python3 youthmappers.py --drive --conflate
+      run: python3 youthmappers.py -s cache --osm --conflate --athena
 
     - name: Fetch AWS Credentials
       uses: aws-actions/configure-aws-credentials@v2
@@ -49,34 +49,10 @@ jobs:
         aws-region: us-east-1
 
     - name: Update chapters list on s3
-      run: aws --region us-east-1 s3 cp chapters.json s3://youthmappers-internal-us-east1/chapters/chapters.json
+      run: aws --region us-east-1 s3 cp chapters.json s3://youthmappers-internal-us-east1/json/chapters.json
       
     - name: Update mappers list on s3
-      run: aws --region us-east-1 s3 cp members.json s3://youthmappers-internal-us-east1/mappers/mappers.json
-
-    
-
-    
-          
-    # - name: Upload members.json to Google Drive
-    #   uses: adityak74/google-drive-upload-git-action@main
-    #   with:
-    #     credentials: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
-    #     filename: members.json
-    #     folderId: 1oEbib5Fa8oZJDdhMbpgcatQWtIFr9C9H
-    #     overwrite: True
-      
-    # - name: Upload chapters.json to Google Drive
-    #   uses: adityak74/google-drive-upload-git-action@main
-    #   with:
-    #     credentials: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
-    #     filename: chapters.json
-    #     folderId: 1oEbib5Fa8oZJDdhMbpgcatQWtIFr9C9H
-    #     overwrite: True
-
-
-
-
+      run: aws --region us-east-1 s3 cp members.json s3://youthmappers-internal-us-east1/json/mappers.json
 
   # - name: Set Datestamp for file suffix
   #       run: echo "DATESTAMP=$(date +"%Y-%m-%d")" >> ${GITHUB_ENV}
