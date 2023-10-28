@@ -40,7 +40,7 @@ jobs:
       env:
         OSM_TEAMS_ACCESS_TOKEN: ${{ secrets.OSM_TEAMS_ACCESS_TOKEN }}
         YGL_GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
-      run: python3 youthmappers.py -s cache --osm --conflate --athena
+      run: python3 youthmappers.py -s cache --conflate --athena
 
     - name: Fetch AWS Credentials
       uses: aws-actions/configure-aws-credentials@v2
@@ -54,22 +54,5 @@ jobs:
     - name: Update mappers list on s3
       run: aws --region us-east-1 s3 cp members.json s3://youthmappers-internal-us-east1/json/mappers.json
 
-  # - name: Set Datestamp for file suffix
-  #       run: echo "DATESTAMP=$(date +"%Y-%m-%d")" >> ${GITHUB_ENV}
-
-#     - name: Upload Chapters to Google Drive
-#       uses: adityak74/google-drive-upload-git-action@main
-#       with:
-#         credentials: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
-#         filename: chapters.csv
-#         folderId: 1p6JeBvbsziMiBefCNet_q3nj9GvQWMnb
-#         name: chapters_${{env.DATESTAMP}}.csv
-#         overwrite: True
-#     - name: Upload YouthMappers to Google Drive
-#       uses: adityak74/google-drive-upload-git-action@main
-#       with:
-#         credentials: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
-#         filename: youthmappers.csv
-#         folderId: 1p6JeBvbsziMiBefCNet_q3nj9GvQWMnb
-#         name: youthmappers_${{env.DATESTAMP}}.csv
-#         overwrite: True
+    - name: Update TSV for Athena on s3
+      run: aws --region us-east-1 s3 cp youthmappers.tsv s3://youthmappers-internal-us-east1/mappers/youthmappers.tsv
