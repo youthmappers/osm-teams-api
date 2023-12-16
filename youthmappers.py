@@ -253,7 +253,7 @@ class YouthMappersHandler():
         print("\nBuilding Mappers DataFrame from members", end="")
         uid_to_chapter_lookup = self.chapters.explode('member_uids').reset_index().rename(
             columns={'index':'chapter_id_from_teams'}
-        ).groupby('member_uids').aggregate({'chapter_id_from_teams':[min,list]}).to_dict()
+        ).groupby('member_uids').aggregate({'chapter_id_from_teams':['min',list]}).to_dict()
 
         uid_to_single_chapter = uid_to_chapter_lookup.get(('chapter_id_from_teams','min'))
         uid_to_chapter_list   = uid_to_chapter_lookup.get(('chapter_id_from_teams','list'))
