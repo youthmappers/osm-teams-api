@@ -359,9 +359,15 @@ class YouthMappersHandler():
         ).reset_index().rename(columns={'index':'uid'})[OUTPUT_COLUMNS]
 
         t.Alumni = t.Alumni.apply(lambda x: pd.Timestamp(x.get('assigned_at')).date() if pd.notnull(x) else '')
-        t['Regional Ambassador'] = t['Regional Ambassador'].apply(lambda x: pd.Timestamp(x.get('assigned_at')).date() if pd.notnull(x) else '')
-        t['Steering Committee'] = t['Steering Committee'].apply(lambda x: pd.Timestamp(x.get('assigned_at')).date() if pd.notnull(x) else '')
-        t.Mentor = t.Mentor.apply(lambda x: pd.Timestamp(x.get('assigned_at')).date() if pd.notnull(x) else '')
+        t['Regional Ambassador']      = t['Regional Ambassador'].apply(
+            lambda x: pd.Timestamp(x.get('assigned_at')).date() if pd.notnull(x) else ''
+            )
+        t['Steering Committee']       = t['Steering Committee'].apply(
+            lambda x: pd.Timestamp(x.get('assigned_at')).date() if pd.notnull(x) else ''
+            )
+        t['Mentor / Faculty Advisor'] = t['Mentor / Faculty Advisor'].apply(
+            lambda x: pd.Timestamp(x.get('assigned_at')).date() if pd.notnull(x) else ''
+            )
 
         t.to_csv('tmp2.csv')
 
