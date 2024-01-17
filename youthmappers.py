@@ -108,7 +108,7 @@ class YouthMappersHandler():
         "Hometown and Country","Role / Position","team_id","all_teams","source","alumni_date"
     ]
     PII_COLUMNS = ["Year Born","Email"]
-    BADGE_COLUMNS = ["Steering Committee","Regional Ambassador","Alumni","Mentor"]
+    BADGE_COLUMNS = ["Steering Committee","Regional Ambassador","Alumni","Mentor / Faculty Advisor"]
     OSM_COLUMNS = ["display_name","account_created","description","changeset_count"]
     CHAPTER_COLUMNS = ["Chapter","University","City","Country","chapter_lon","chapter_lat"]
 
@@ -313,7 +313,10 @@ class YouthMappersHandler():
 
         self.df = self.df.join(self.osm, how='outer')
         self.df = self.df[YM_COLUMNS+PII_COLUMNS+BADGE_COLUMNS+OSM_COLUMNS]
-        
+
+    def assign_alumni_badge(self, uid, graduation_date):
+        return self.teams.assign_badge(1, 3, uid, graduation_date, None)
+
 
     def copy_members_and_chapters_to_drive(self):
         """

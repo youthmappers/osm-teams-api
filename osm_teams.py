@@ -350,7 +350,7 @@ class OSMTeams():
         if valid_until:
             data['valid_until'] = str(valid_until)
         
-            res = self.session.post(self.API_URL + f"organizations/{org_id}/badges/{badge_id}/assign/{user_id}",
+        res = self.session.post(self.API_URL + f"organizations/{org_id}/badges/{badge_id}/assign/{user_id}",
                                     data=json.dumps(data))
         
         return res
