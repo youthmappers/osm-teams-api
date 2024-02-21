@@ -331,6 +331,14 @@ class OSMTeams():
         return results
     
     
+    def remove_moderator_from_team(self, uid, team):
+        return self.session.put(self.API_URL + f"/teams/{team}/removeModerator/{uid}")
+    
+
+    def remove_uid_from_team(self, uid, team):
+        return self.session.put(self.API_URL + f"/teams/remove/{team}/{uid}")
+    
+    
     def update_team_location(self, team, point):
         data = json.dumps({'location': point})
         res = self.session.put(self.API_URL + f"teams/{team}", data=data)

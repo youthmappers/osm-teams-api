@@ -335,6 +335,7 @@ class YouthMappersHandler():
             "Graduation Date",
             "Hometown and Country",
             "Role / Position",
+            "Email",
             "changeset_count",
             "account_created",
             "team_id",
