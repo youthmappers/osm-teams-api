@@ -1,9 +1,9 @@
-# This workflow runs the youthmappers.py script to perform the following actions: 
+# This workflow runs the youthmappers.py script to perform the following actions:
 # Download the latest YouthMappers data from OSM Teams
 # Conflate the latest data against the previous lists on Google Drive
 # Update the latest spreadsheets on Google Drive
 # Write the latest JSON files to Google Drive
-# Update the youthmappers.tsv file on AWS S3
+# Update the youthmappers parquet file on AWS S3 (partitioned by date)
 
 name: Download YouthMappers Org from OSMTeams
 
@@ -34,7 +34,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install requests pandas google-api-python-client gspread
+        pip install requests pandas google-api-python-client gspread pyarrow
     
     - name: Obtain latest list of YouthMappers
       env:
@@ -54,5 +54,7 @@ jobs:
     - name: Update mappers list on s3
       run: aws --region us-east-1 s3 cp members.json s3://youthmappers-internal-us-east1/json/mappers.json
 
-    - name: Update TSV for Athena on s3
-      run: aws --region us-east-1 s3 cp youthmappers.tsv s3://youthmappers-internal-us-east1/mappers/youthmappers.tsv
+    - name: Update Parquet for Athena on s3
+      run: |
+        TODAY=$(date +%Y-%m-%d)
+        aws --region us-east-1 s3 cp youthmappers_date=${TODAY}.parquet s3://youthmappers-internal-us-east1/mappers/date=${TODAY}/youthmappers.parquet

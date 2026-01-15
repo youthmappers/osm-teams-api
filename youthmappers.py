@@ -1,4 +1,5 @@
 import json, os, argparse, base64
+from datetime import datetime
 import pandas as pd
 
 # Required for Google Drive & Google Sheets
@@ -122,10 +123,19 @@ class YouthMappersHandler():
         self.members_id = "1tY2KHbVUwqHYxZVVb4dZRsMe8oFSLdMJ"
     
     def to_tsv_for_athena(self):
+        """
+        Write mapper data to Parquet format with date partitioning
+        """
         t = self.df.merge(self.chapters[
             ['name','University','City','Country','chapter_lon','chapter_lat']
         ].rename(columns={'name':'Chapter'}), left_on='team_id', right_index=True)
-        t[[
+
+        # Add date partition column
+        today = datetime.now().strftime('%Y-%m-%d')
+        t['date'] = today
+
+        # Select columns for output
+        output_df = t[[
              "username",
              "Gender",
              "team_id",
@@ -138,8 +148,15 @@ class YouthMappersHandler():
              "City",
              "Country",
              "chapter_lon",
-             "chapter_lat"]].to_csv("youthmappers.tsv", sep='\t', header=False
-        )
+             "chapter_lat",
+             "date"]]
+
+        # Write to Parquet file with date in filename
+        output_filename = f"youthmappers_date={today}.parquet"
+        output_df.to_parquet(output_filename, engine='pyarrow', index=False)
+        print(f"Wrote {len(output_df)} mappers to {output_filename}")
+
+        return output_filename
 
 
     def download_latest_from_osm_teams(self):
