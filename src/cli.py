@@ -12,6 +12,7 @@ from client import (
     save_teams_dataframe,
 )
 
+
 def main(argv: list[str] | None = None) -> None:
     parser = build_parser()
     args = parser.parse_args(args=argv)
@@ -38,6 +39,7 @@ def main(argv: list[str] | None = None) -> None:
         members_df.to_csv("enriched_members.csv")
 
         print(members_df)
+
 
 if __name__ == "__main__":
     main()

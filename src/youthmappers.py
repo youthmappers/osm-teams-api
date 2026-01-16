@@ -23,6 +23,7 @@ except ImportError:  # pragma: no cover - mixin not available
 
     class GoogleSheetsMixin:  # type: ignore
         """Fallback mixin when the google extras are not installed."""
+
         pass
 
 
@@ -58,7 +59,6 @@ class YouthMappers(GoogleSheetsMixin, OSMTeams):
         creds_b64 = os.getenv("YGL_GOOGLE_CREDENTIALS")
         self.creds = json.loads(base64.b64decode(creds_b64)) if creds_b64 else None
 
-    
     def build_mappers_dataframe(
         self,
         members_df: DataFrame,
@@ -142,7 +142,7 @@ def main(argv: list[str] | None = None) -> None:
         logger.info("Fetching latest teams and members from OSM Teams")
         chapters_df = ym.fetch_and_cache_teams(cache_path=teams_cache)
         members_df = ym.fetch_and_cache_members(cache_path=members_cache)
-    
+
     try:
         members_df, chapters_df = ym.load_cached_data(
             members_path=members_cache,
@@ -151,7 +151,7 @@ def main(argv: list[str] | None = None) -> None:
     except FileNotFoundError as exc:
         logger.error("%s not found. Run with --teams first to prime the cache.", exc)
         raise SystemExit(1) from exc
-    
+
     # Build mappers dataframe
     mappers_df = ym.build_mappers_dataframe(
         members_df=members_df,
@@ -161,51 +161,89 @@ def main(argv: list[str] | None = None) -> None:
     if args.conflate:
         logger.info("Conflating mappers with previous Master list from Google Drive")
         mappers_df = ym.fetch_previous_master_list_and_conflate(mappers_df=mappers_df)
-        mappers_df.to_parquet('youthmappers-conflated.parquet')
-    
+        mappers_df.to_parquet("youthmappers-conflated.parquet")
+
     if args.osm:
         logger.info("Enriching members with OpenStreetMap profile information")
         mappers_df = ym.fetch_mapper_info_from_osm(members_df=mappers_df)
 
-    mappers_df.to_parquet('tmp_mappers.parquet')
+    mappers_df.to_parquet("tmp_mappers.parquet")
 
-    output = GeoDataFrame(mappers_df.merge(chapters_df[
-            ['name','University','City','Country','geometry']
-        ].rename(columns={'name':'chapter', 'University':'university', 'City':'city', 'Country':'country'}), left_on='team_id', right_index=True))
-    output = output.reset_index().rename(columns={'index':'uid'})
-    
+    output = GeoDataFrame(
+        mappers_df.merge(
+            chapters_df[["name", "University", "City", "Country", "geometry"]].rename(
+                columns={
+                    "name": "chapter",
+                    "University": "university",
+                    "City": "city",
+                    "Country": "country",
+                }
+            ),
+            left_on="team_id",
+            right_index=True,
+        )
+    )
+    output = output.reset_index().rename(columns={"index": "uid"})
+
     # Clean up some of the structured columns:
-    output['alumni'] = output['Alumni'].apply(lambda d: pd.to_datetime(d['assigned_at']).date() if isinstance(d, dict) and 'assigned_at' in d else pd.NaT)
-    output['ymsc'] = output["Steering Committee"].apply(lambda d: pd.to_datetime(d['assigned_at']).date() if isinstance(d, dict) and 'assigned_at' in d else pd.NaT)
-    output['regional_ambassador'] = output["Regional Ambassador"].apply(lambda d: pd.to_datetime(d['assigned_at']).date() if isinstance(d, dict) and 'assigned_at' in d else pd.NaT)
-    output['mentor_faculty_advisor'] = output["Mentor / Faculty Advisor"].apply(lambda d: pd.to_datetime(d['assigned_at']).date() if isinstance(d, dict) and 'assigned_at' in d else pd.NaT)
+    output["alumni"] = output["Alumni"].apply(
+        lambda d: (
+            pd.to_datetime(d["assigned_at"]).date()
+            if isinstance(d, dict) and "assigned_at" in d
+            else pd.NaT
+        )
+    )
+    output["ymsc"] = output["Steering Committee"].apply(
+        lambda d: (
+            pd.to_datetime(d["assigned_at"]).date()
+            if isinstance(d, dict) and "assigned_at" in d
+            else pd.NaT
+        )
+    )
+    output["regional_ambassador"] = output["Regional Ambassador"].apply(
+        lambda d: (
+            pd.to_datetime(d["assigned_at"]).date()
+            if isinstance(d, dict) and "assigned_at" in d
+            else pd.NaT
+        )
+    )
+    output["mentor_faculty_advisor"] = output["Mentor / Faculty Advisor"].apply(
+        lambda d: (
+            pd.to_datetime(d["assigned_at"]).date()
+            if isinstance(d, dict) and "assigned_at" in d
+            else pd.NaT
+        )
+    )
 
     # Replace `gender` with cleaned up version
-    output['gender'] = output['Gender']
-    
+    output["gender"] = output["Gender"]
+
     # Just a date for account_created
     output["account_created"] = output["account_created"].apply(lambda d: d.date())
-    
-    output[[
-        "uid",
-        "username",
-        "gender",
-        "team_id",
-        "alumni",
-        "ymsc",
-        "regional_ambassador",
-        "mentor_faculty_advisor",
-        "chapter",
-        "university",
-        "city",
-        "country",
-        "account_created",
-        "description",
-        "img",
-        "changesets",
-        "company",
-        "geometry"
-    ]].to_parquet('youthmappers.zstd.parquet', compression='zstd')
+
+    output[
+        [
+            "uid",
+            "username",
+            "gender",
+            "team_id",
+            "alumni",
+            "ymsc",
+            "regional_ambassador",
+            "mentor_faculty_advisor",
+            "chapter",
+            "university",
+            "city",
+            "country",
+            "account_created",
+            "description",
+            "img",
+            "changesets",
+            "company",
+            "geometry",
+        ]
+    ].to_parquet("youthmappers.zstd.parquet", compression="zstd")
+
 
 if __name__ == "__main__":
     main()

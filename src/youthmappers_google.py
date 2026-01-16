@@ -92,9 +92,7 @@ class GoogleSheetsMixin:
         df.Name = df.apply(
             lambda row: self._conflate(row, "Name", "Name_masterlist", frame=df), axis=1
         )
-        df.Email = df.apply(
-            lambda row: self._conflate(row, "Email", "email", frame=df), axis=1
-        )
+        df.Email = df.apply(lambda row: self._conflate(row, "Email", "email", frame=df), axis=1)
         df.team_id = df.apply(
             lambda row: self._conflate(row, "team_id", "chapter_id", frame=df), axis=1
         ).astype(int)
@@ -102,14 +100,15 @@ class GoogleSheetsMixin:
             lambda row: self._conflate(row, "source", "source_masterlist", frame=df), axis=1
         )
         df.alumni_date = df.apply(
-            lambda row: self._conflate(row, "alumni_date", "alumni_date_conflated", frame=df), axis=1
+            lambda row: self._conflate(row, "alumni_date", "alumni_date_conflated", frame=df),
+            axis=1,
         )
         df["Role / Position"] = df.apply(
             lambda row: self._conflate(row, "Role / Position", "role", frame=df),
             axis=1,
         )
 
-        df = df.drop(["graduation","phone"], axis=1, errors="ignore")
+        df = df.drop(["graduation", "phone"], axis=1, errors="ignore")
 
         self.mappers_df = df
         return df
@@ -274,7 +273,11 @@ class GoogleSheetsMixin:
             return pd.NaT
         if pd_types.is_string_dtype(dtype):
             return ""
-        if pd_types.is_bool_dtype(dtype) or pd_types.is_integer_dtype(dtype) or pd_types.is_float_dtype(dtype):
+        if (
+            pd_types.is_bool_dtype(dtype)
+            or pd_types.is_integer_dtype(dtype)
+            or pd_types.is_float_dtype(dtype)
+        ):
             return pd.NA
         return None
 

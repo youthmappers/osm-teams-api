@@ -55,6 +55,7 @@ def load_teams_dataframe(path: str | Path = TEAMS_CACHE) -> DataFrame:
     # Fallback to plain dataframe
     return read_json(path)
 
+
 def build_parser(parser: argparse.ArgumentParser | None = None) -> argparse.ArgumentParser:
     if parser is None:
         parser = argparse.ArgumentParser(description="OSM Teams CLI for Organizations")
@@ -82,6 +83,7 @@ def build_parser(parser: argparse.ArgumentParser | None = None) -> argparse.Argu
         help="Logging verbosity (default: INFO)",
     )
     return parser
+
 
 @dataclass
 class RetryConfig:
@@ -706,8 +708,8 @@ class OSMTeams:
         session: Session | None = None,
     ) -> DataFrame:
         """Fetch OSM user metadata and enrich the provided (or cached) members dataframe.
-        
-            Expects a members dataframe with OSM UIDs as the index.
+
+        Expects a members dataframe with OSM UIDs as the index.
         """
 
         df_source = members_df if members_df is not None else getattr(self, "_members", None)
@@ -715,10 +717,12 @@ class OSMTeams:
             raise ValueError(
                 "No members dataframe available. Provide one or call get_all_organization_members first."
             )
-        
-        osm_df = self._download_osm_users([str(i) for i in df_source.index], timeout=timeout, session=session)
 
-        for col in ["changesets","traces"]:
+        osm_df = self._download_osm_users(
+            [str(i) for i in df_source.index], timeout=timeout, session=session
+        )
+
+        for col in ["changesets", "traces"]:
             if col in osm_df.columns:
                 osm_df[col] = osm_df[col].apply(
                     lambda payload: payload.get("count") if isinstance(payload, dict) else 0
