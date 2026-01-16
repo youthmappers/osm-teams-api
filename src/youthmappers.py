@@ -6,8 +6,10 @@ import json
 import logging
 import os
 from pathlib import Path
+from shapely import to_wkt
 
 import pandas as pd
+from geopandas import GeoDataFrame
 from pandas import DataFrame, Timestamp
 
 from client import (
@@ -21,7 +23,6 @@ except ImportError:  # pragma: no cover - mixin not available
 
     class GoogleSheetsMixin:  # type: ignore
         """Fallback mixin when the google extras are not installed."""
-
         pass
 
 
@@ -157,8 +158,6 @@ def main(argv: list[str] | None = None) -> None:
         teams_df=chapters_df,
     )
 
-    mappers_df.to_parquet('youthmappers.parquet')
-
     if args.conflate:
         logger.info("Conflating mappers with previous Master list from Google Drive")
         mappers_df = ym.fetch_previous_master_list_and_conflate(mappers_df=mappers_df)
@@ -168,6 +167,45 @@ def main(argv: list[str] | None = None) -> None:
         logger.info("Enriching members with OpenStreetMap profile information")
         mappers_df = ym.fetch_mapper_info_from_osm(members_df=mappers_df)
 
+    mappers_df.to_parquet('tmp_mappers.parquet')
+
+    output = GeoDataFrame(mappers_df.merge(chapters_df[
+            ['name','University','City','Country','geometry']
+        ].rename(columns={'name':'chapter', 'University':'university', 'City':'city', 'Country':'country'}), left_on='team_id', right_index=True))
+    output = output.reset_index().rename(columns={'index':'uid'})
+    
+    # Clean up some of the structured columns:
+    output['alumni'] = output['Alumni'].apply(lambda d: pd.to_datetime(d['assigned_at']).date() if isinstance(d, dict) and 'assigned_at' in d else pd.NaT)
+    output['ymsc'] = output["Steering Committee"].apply(lambda d: pd.to_datetime(d['assigned_at']).date() if isinstance(d, dict) and 'assigned_at' in d else pd.NaT)
+    output['regional_ambassador'] = output["Regional Ambassador"].apply(lambda d: pd.to_datetime(d['assigned_at']).date() if isinstance(d, dict) and 'assigned_at' in d else pd.NaT)
+    output['mentor_faculty_advisor'] = output["Mentor / Faculty Advisor"].apply(lambda d: pd.to_datetime(d['assigned_at']).date() if isinstance(d, dict) and 'assigned_at' in d else pd.NaT)
+
+    # Replace `gender` with cleaned up version
+    output['gender'] = output['Gender']
+    
+    # Just a date for account_created
+    output["account_created"] = output["account_created"].apply(lambda d: d.date())
+    
+    output[[
+        "uid",
+        "username",
+        "gender",
+        "team_id",
+        "alumni",
+        "ymsc",
+        "regional_ambassador",
+        "mentor_faculty_advisor",
+        "chapter",
+        "university",
+        "city",
+        "country",
+        "account_created",
+        "description",
+        "img",
+        "changesets",
+        "company",
+        "geometry"
+    ]].to_parquet('youthmappers.zstd.parquet', compression='zstd')
 
 if __name__ == "__main__":
     main()
