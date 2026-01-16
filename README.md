@@ -17,12 +17,6 @@ Run the YouthMappers CLI after syncing (you will need the `google` optional depe
 uv run youthmappers --help
 ```
 
-## Tests
-
-```
-uv run --group dev pytest
-```
-
 ## Linting & formatting
 
 Ruff and Black live in the `dev` dependency group. Run them locally with:
