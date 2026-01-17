@@ -50,10 +50,10 @@ def load_teams_dataframe(path: str | Path = TEAMS_CACHE) -> DataFrame:
 
     features = payload.get("features")
     if features:
-        return GeoDataFrame.from_features(features)
+        return GeoDataFrame.from_features(features).set_index('id')
 
     # Fallback to plain dataframe
-    return read_json(path)
+    return read_json(path) # This will cause problems
 
 
 def build_parser(parser: argparse.ArgumentParser | None = None) -> argparse.ArgumentParser:
