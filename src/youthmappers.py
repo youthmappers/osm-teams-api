@@ -115,11 +115,7 @@ def main(argv: list[str] | None = None) -> None:
         action="store_true",
         help="Fetch latest teams and members from OSM Teams API",
     )
-    parser.add_argument(
-        "--output",
-        default=str("youthmappers.json"),
-        help="Where to write the JSON roster (default: youthmappers.json)",
-    )
+    
     parser.add_argument(
         "--conflate",
         action="store_true",

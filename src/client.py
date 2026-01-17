@@ -39,21 +39,21 @@ def load_members_dataframe(path: str | Path = MEMBERS_CACHE) -> DataFrame:
     return read_json(path, orient="split")
 
 
-def save_teams_dataframe(df: DataFrame, path: str | Path = TEAMS_CACHE) -> None:
+def save_teams_dataframe(df: GeoDataFrame, path: str | Path = TEAMS_CACHE) -> None:
     Path(path).write_text(df.to_json())
 
 
-def load_teams_dataframe(path: str | Path = TEAMS_CACHE) -> DataFrame:
+def load_teams_dataframe(path: str | Path = TEAMS_CACHE) -> GeoDataFrame:
     path = Path(path)
     with path.open() as fh:
         payload = json.load(fh)
 
-    features = payload.get("features")
-    if features:
-        return GeoDataFrame.from_features(features).set_index('id')
+    try:
+        features = payload.get("features")
+        return GeoDataFrame.from_features(features).set_index('team_id')
 
-    # Fallback to plain dataframe
-    return read_json(path) # This will cause problems
+    except: 
+        raise OSMTeamsError(f"Failed to parse teams GeoJSON from {path}")
 
 
 def build_parser(parser: argparse.ArgumentParser | None = None) -> argparse.ArgumentParser:
@@ -62,9 +62,6 @@ def build_parser(parser: argparse.ArgumentParser | None = None) -> argparse.Argu
     parser.add_argument("--id", type=int, default=5, help="Organization ID")
     parser.add_argument(
         "--osm", action="store_true", help="Enrich cached members with data from osm.org"
-    )
-    parser.add_argument(
-        "--parquet", action="store_true", help="Write mappers.parquet alongside the CSV output"
     )
     parser.add_argument(
         "--members-cache",
@@ -378,8 +375,13 @@ class OSMTeams:
                 assert len(data) == pagination.get(
                     "total"
                 ), f"Pagination returned incorrect number of teams: {len(data)} / {pagination.get('total')}"
-
-        df = DataFrame(data).set_index("id")
+        
+        df = DataFrame(data)
+        
+        # Important to preserve `id` here as team_id so it doesn't get lost in the GeoJSON
+        df['team_id'] = df['id']
+        
+        df = df.set_index("id")
         try:
             geometry = df["location"].apply(lambda loc: shape(json.loads(loc)) if loc else None)
         except Exception:
