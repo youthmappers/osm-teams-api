@@ -1,11 +1,4 @@
-# This workflow runs the youthmappers.py script to perform the following actions: 
-# Download the latest YouthMappers data from OSM Teams
-# Conflate the latest data against the previous lists on Google Drive
-# Update the latest spreadsheets on Google Drive
-# Write the latest JSON files to Google Drive
-# Update the youthmappers.tsv file on AWS S3
-
-name: Download YouthMappers Org from OSMTeams
+name: Update YouthMappers List on s3 from OSMTeams
 
 on:
   schedule:
@@ -19,15 +12,19 @@ permissions:
 
 jobs:
   run:
+    name: Fetch YouthMappers Data and Upload to S3
     runs-on: ubuntu-latest
     steps:
     - name: Checkout Repo
       uses: actions/checkout@v3
     
-    - name: Set up uv with Python 3.11
-      uses: astral-sh/setup-uv@v3
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v6
       with:
         python-version: "3.11"
+        
+    - name: Set up uv
+      uses: astral-sh/setup-uv@v7
 
     - name: Install dependencies
       run: uv sync --extra google
@@ -36,19 +33,16 @@ jobs:
       env:
         OSM_TEAMS_ACCESS_TOKEN: ${{ secrets.OSM_TEAMS_ACCESS_TOKEN }}
         YGL_GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
-      run: uv run youthmappers --teams --conflate --osm 
+      run: uv run youthmappers --teams --conflate --osm
 
     - name: Fetch AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v2
+      uses: aws-actions/configure-aws-credentials@v5
       with:
-        role-to-assume: arn:aws:iam::812718984223:role/YouthMappersGithubAssumeRole
+        role-to-assume: ${{ secrets.YOUTHMAPPERS_AWS_ROLE }}
         aws-region: us-east-1
 
-    - name: Set date variable
-      run: echo "CURRENT_DATE=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
-
-    - name: Update TSV for Athena on s3
-      run: aws --region us-east-1 s3 cp youthmappers.zstd.parquet s3://youthmappers-internal-us-east1/mappers/ds=${{ env.CURRENT_DATE }}/youthmappers.zstd.parquet
+    - name: Copy YouthMappers GeoParquet file to s3
+      run: aws --region us-east-1 s3 cp youthmappers.zstd.parquet s3://youthmappers-internal-us-east1/mappers/ds=$(date +'%Y-%m-%d')/youthmappers.zstd.parquet
 
     # - name: Update chapters list on s3
     #   run: aws --region us-east-1 s3 cp chapters.json s3://youthmappers-internal-us-east1/json/chapters.json
