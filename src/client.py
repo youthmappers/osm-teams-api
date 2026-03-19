@@ -766,8 +766,11 @@ class OSMTeams:
 
         base_url = "https://openstreetmap.org/api/0.6/users.json?users="
         fetched: list[dict[str, Any]] = []
+        consecutive_failures = 0
+        max_consecutive_failures = 3
 
         def fetch_batch(batch: list[str]) -> None:
+            nonlocal consecutive_failures
             if not batch:
                 return
             url = base_url + ",".join(batch)
@@ -776,6 +779,21 @@ class OSMTeams:
                 response.raise_for_status()
                 payload = response.json()
             except (RequestException, ValueError) as exc:
+                # Check if this is a blocking response (403/429) — splitting won't help
+                status_code = getattr(getattr(exc, "response", None), "status_code", None)
+                if status_code in (403, 429):
+                    raise OSMTeamsError(
+                        f"OSM API returned HTTP {status_code}; requests are being blocked. "
+                        f"Aborting OSM user lookup."
+                    ) from exc
+
+                consecutive_failures += 1
+                if consecutive_failures >= max_consecutive_failures:
+                    raise OSMTeamsError(
+                        f"OSM API failed {consecutive_failures} consecutive batches ({exc}). "
+                        f"Aborting OSM user lookup."
+                    ) from exc
+
                 if len(batch) == 1:
                     self.logger.error("Failed to fetch OSM data for uid %s: %s", batch[0], exc)
                     return
@@ -786,6 +804,9 @@ class OSMTeams:
                 fetch_batch(batch[:mid])
                 fetch_batch(batch[mid:])
                 return
+
+            # Reset failure counter on success
+            consecutive_failures = 0
 
             users_payload = payload.get("users") if isinstance(payload, dict) else None
             if not isinstance(users_payload, list):
@@ -840,6 +861,13 @@ class OSMTeams:
 
     def remove_uid_from_team(self, uid: int, team: int):
         return self._request("PUT", f"teams/remove/{team}/{uid}")
+
+    def add_manager(self, osm_id: int, org_id: int | None = None):
+        org_identifier = org_id or self.ORG
+        return self._request(
+            "PUT",
+            f"organizations/{org_identifier}/addManager/{osm_id}",
+        )
 
     def update_team_location(self, team: int, point: dict[str, Any]):
         data = {"location": point}
