@@ -763,6 +763,10 @@ class OSMTeams:
         timeout = timeout or self.timeout
         http = session or Session()
         owns_session = session is None
+        if owns_session:
+            http.headers["User-Agent"] = (
+                "osm-teams-api/1.0 (https://github.com/youthmappers/osm-teams-api)"
+            )
 
         base_url = "https://openstreetmap.org/api/0.6/users.json?users="
         fetched: list[dict[str, Any]] = []
