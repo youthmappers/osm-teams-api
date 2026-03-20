@@ -14,6 +14,7 @@ from pandas import DataFrame, Timestamp
 
 from client import (
     OSMTeams,
+    OSMTeamsError,
     build_parser,
 )
 
@@ -161,7 +162,11 @@ def main(argv: list[str] | None = None) -> None:
 
     if args.osm:
         logger.info("Enriching members with OpenStreetMap profile information")
-        mappers_df = ym.fetch_mapper_info_from_osm(members_df=mappers_df)
+        try:
+            mappers_df = ym.fetch_mapper_info_from_osm(members_df=mappers_df)
+        except OSMTeamsError as exc:
+            logger.error("OSM API error: %s", exc)
+            raise SystemExit(1) from exc
 
     mappers_df.to_parquet("tmp_mappers.parquet")
 
@@ -180,6 +185,18 @@ def main(argv: list[str] | None = None) -> None:
         )
     )
     output = output.reset_index().rename(columns={"index": "uid"})
+
+    # Ensure optional columns exist even when --osm enrichment is not requested
+    optional_columns = {
+        "account_created": pd.NaT,
+        "description": pd.NA,
+        "img": pd.NA,
+        "changesets": pd.NA,
+        "company": pd.NA,
+    }
+    for column_name, default_value in optional_columns.items():
+        if column_name not in output.columns:
+            output[column_name] = default_value
 
     # Clean up some of the structured columns:
     output["alumni"] = output["Alumni"].apply(
@@ -214,8 +231,8 @@ def main(argv: list[str] | None = None) -> None:
     # Replace `gender` with cleaned up version
     output["gender"] = output["Gender"]
 
-    # Just a date for account_created
-    output["account_created"] = output["account_created"].apply(lambda d: d.date())
+    # Just a date for account_created (when available)
+    output["account_created"] = pd.to_datetime(output["account_created"], errors="coerce").dt.date
 
     output[
         [

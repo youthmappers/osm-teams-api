@@ -25,6 +25,7 @@ htmlcov/
 # IDE/editor
 .DS_Store
 .vscode/
+.ipynb_checkpoints/
 
 # Project outputs
 *.json
@@ -32,6 +33,7 @@ htmlcov/
 *.geojson
 *.tsv
 *.parquet
+Sandbox.ipynb
 
 # uv / package manager
 .uv-cache/
