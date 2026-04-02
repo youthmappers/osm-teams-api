@@ -1,8 +1,6 @@
 OSM Teams API
 ===
 
-[![Update YouthMappers List on s3 from OSMTeams](https://github.com/youthmappers/osm-teams-api/actions/workflows/run_youthmappers.yml/badge.svg)](https://github.com/youthmappers/osm-teams-api/actions/workflows/run_youthmappers.yml)
-
 Python client and YouthMappers utilities that sit on top of the [OSM Teams API](https://mapping.team/docs/api).
 
 ## Getting started
